@@ -1,9 +1,12 @@
-# data_engineer
-mvp_data_engineer
+# mvp_data_engineer
+
 
 **Nome**: Fernando Lopes Santana
+
 **Matrícula**: 40530010057_20260_01
+
 **Disciplina/Sprint**: Engenharia de Dados
+
 
 **Análise Estratégica da Balança Comercial Brasileira**
 
