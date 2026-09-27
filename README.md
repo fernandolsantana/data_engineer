@@ -114,56 +114,40 @@ A modelagem dimensional eliminou a opacidade dos códigos alfanuméricos aduanei
 | silver_fato_comex    	| VL_FRETE        	| INT          	| Valor financeiro do frete internacional em Dólares Americanos (US$).              	|
 | silver_fato_comex    	| VL_SEGURO       	| INT          	| Valor financeiro do seguro internacional em Dólares Americanos (US$).             	|
 
+Tabela 1. Catálogo de dados contendo todos atributos utilizados neste trabalho.
 
 **4. Pipeline de Dados (Etapa 4.4)**
 
-O processo de ETL foi orquestrado centralmente em um único Notebook no Databricks, utilizando a linguagem PySpark. Para manter o fluxo coeso e simplificar a governança, a ramificação do processamento não foi feita dividindo o código em múltiplos arquivos, mas sim estruturada de forma lógica e sequencial dentro do mesmo script, adotando rigorosamente a Arquitetura Medallion em três fases de processamento direto:
+O processo de ETL foi realizado em um único Notebook no Databricks, utilizando a linguagem PySpark. Para manter o fluxo coeso e simplificar a governança, a ramificação do processamento não foi feita dividindo o código em múltiplos arquivos, mas sim estruturada de forma lógica e sequencial dentro do mesmo script, adotando rigorosamente a Arquitetura Medallion em três fases de processamento direto:
 
-Camada Bronze 
+**Camada Bronze** 
 A etapa inicial é responsável pela ingestão escalável das fontes governamentais. O script inicia consumindo os oito arquivos nativos .csv. A ramificação lógica desta fase consiste na união vertical das bases históricas, agregando os anos de 2024 e 2025, e na criação de uma coluna identificadora primária, denominada TIPO_OPERACAO, para distinguir os fluxos de exportação ('EXP') e importação ('IMP'). Finalizadas essas transformações primárias, os dados brutos foram salvos fisicamente como tabelas no formato Delta Lake, preservando o histórico imutável das transações.
 
-Camada Silver
+**Camada Silver**
 Na sequência, o pipeline avança para a fase de higienização, consumindo diretamente a tabela consolidada na etapa Bronze. A ramificação lógica da camada Silver concentra-se na qualidade de dados: o script aplica a correção de _encoding_ e implementa filtros defensivos rígidos (como filter(col("VL_FOB") > 0)). Esse filtro garante o descarte automático de registros aduaneiros corrompidos ou sem impacto financeiro real.A base limpa é persistida sobrepondo a camada intermediária (silver_fato_comex), que passa a atuar como a fonte oficial do projeto. 
 
-Camada Gold
+**Camada Gold**
 O processamento é finalizado na camada destinada à inteligência de negócio. O script orquestra a consolidação dos dados realizando a leitura da camada Silver em conjunto com as tabelas de Dimensões textuais (Bronze). A ramificação lógica constrói uma modelagem dimensional (Star Schema) por meio de cruzamentos do tipo LEFT JOIN. Para proteger a integridade estatística da balança comercial, a função coalesce é combinada com lit para tratar as lacunas governamentais de origem ("ND") sem causar distorções numéricas. O resultado desta operação é materializado e salvo na tabela gold_comex_analitica, entregando uma One Big Table fisicamente otimizada para as consultas gerenciais em SQL.
 
 <img width="362" height="325" alt="tabelas-mvp" src="https://github.com/user-attachments/assets/64e4ace4-8b45-4417-a666-65f078747040" />
+
 Figura 1. Listagem das tabelas criadas (bronze, silver e gold)
 
+**5. Qualidade de Dados (Etapa 4.5)**
 
+O perfilamento dos dados revelou instabilidades sistêmicas nos registros governamentais. Evidenciando a baixa qualidade na coleta da origem. Contextualizando, no comércio exterior real, muitas operações aduaneiras (especialmente importações de bens nacionalizados em portos genéricos ou compras governamentais) são registradas sem a declaração do estado de destino final. O sistema do Siscomex registra essas transações com a sigla "ND" (Não Declarado). Portanto, o alto volume reflete a realidade operacional imperfeita da balança comercial brasileira, onde a rastreabilidade regional possui furos. A auditoria de qualidade processou as cinco dimensões críticas de higienização durante a transição estrutural da Camada Silver para a Gold:
 
+**Completude**: Detectou-se uma proporção significativa de valores classificados como "ND" (Não Declarado) na coluna de Unidades Federativas de destino/origem, caracterizando um furo na rastreabilidade do Siscomex. A mera supressão dessas linhas corromperia os totais financeiros globaisn não podendo ser adotada. Neste caso, a solução utilizada foi a inserção de um LEFT JOIN para preservar as transações orfãs e aplicou a função _coalesce_ para inserir "Estado Não Informado", mantendo a base analiticamente coesa e sem imputações enviesadas.
 
+**Consistência**: Falhas críticas de encoding e tipagem. A base nativa utiliza _latin1_, gerando corrupção de caracteres especiais se lida em UTF-8. Além disso, aspas mal formatadas no dicionário NCM deslocavam colunas, causando erros críticos no cruzamento de dados (CAST_INVALID_INPUT). Para isso, foi realizada a inserção do parâmetro encoding="latin1" na ingestão (Bronze) e conversão explícita forçada para texto (.cast("string")) em todas as chaves relacionais na Camada Gold.
 
+**Unicidade**: Avaliou-se o risco de duplicidade de registros. Como a Tabela Fato reflete transações individuais que podem possuir os mesmos exatos atributos em dias diferentes, não se aplicou a função dropDuplicates(), sob pena de apagar volumes legítimos de operações recorrentes. A granularidade da origem manteve-se intacta.
 
+**Acurácia**: Avaliação de coerência física e financeira. Identificaram-se registros nulos ou zerados na coluna de montante financeiro, sem amparo lógico aduaneiro. Neste caso, foi realizada a implementação de filtro na Camada Silver (filter(col("VL_FOB") > 0) e conversão matemática para Double), descartando linhas sem valor econômico.
 
+**Outliers**: A análise descritiva identificou transações com valores FOB isolados na casa de centenas de milhões de dólares. Poré,. no contexto de comércio exterior (ex: importação de plataformas de petróleo ou exportação de lote de aeronaves intercontinentais), operações extremas são ocorrências factuais, e não erros sistêmicos. Os outliers foram validados teoricamente e mantidos no escopo para não distorcer o resultado financeiro total do país.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-**Validação Automatizada de Qualidade (Databricks Lakehouse Monitoring)**
+Abaixo, uma tabela contendo os resultados obtidos utilizando a **Validação Automatizada de Qualidade** presente nativamente no Databricks:
 
 | Métrica Avaliada             	| Coluna(s) de Referência          	| Resultado                                   	| Evidência da Transformação                                                                                                                       	|
 |------------------------------	|----------------------------------	|---------------------------------------------	|--------------------------------------------------------------------------------------------------------------------------------------------------	|
@@ -171,3 +155,48 @@ Figura 1. Listagem das tabelas criadas (bronze, silver e gold)
 | Acurácia Numérica            	| valor_fob_dolar, peso_liquido_kg 	| 0% de Zeros                                 	| Valida a limpeza realizada na Camada Silver, que filtrou anomalias e registros aduaneiros sem impacto financeiro real.                           	|
 | Consistência (Cardinalidade) 	| tipo_operacao                    	| 2 Valores                                   	| A exatidão de apenas dois vetores ('EXP' e 'IMP') comprova a ausência de ruídos ou erros de categorização na ingestão.                           	|
 | Volumetria Global            	| Tabela Inteira (gold_comex)      	| (Preencher com o total de linhas) Registros 	| Demonstra a estabilidade do pipeline na consolidação integral da carga histórica (2024-2025).                                                    	|
+
+
+Tabela 2. resultado extraído do Databricks Lakehouse Monitoring.
+
+**6. Análise de Dados (Etapa 4.5)**
+**6.1. Vulnerabilidade da Cadeia de Suprimentos**
+
+A balança comercial evidencia uma assimetria perigosa. A consolidação dos 5 eixos de vulnerabilidade demonstra o quanto de capital é imobilizado na sustentação estrutural do país.
+
+TABELA
+
+GRAFICOS
+
+A matriz geopolítica abaixo revela a extrema concentração de fornecimento:
+
+TABELA
+
+GRAFICOS
+
+Os dados evidenciam que a cadeia de suprimentos brasileira opera sob elevado risco geopolítico. Constata-se uma dependência massiva de poucas nações para garantir insumos básicos do agronegócio e compostos farmacêuticos primários (IFAs), com uma concentração muito alta dos dois principai parceiros comerciais do Brasil. Também foi observada a vulnerabilidade da cadeia de suprimentos: choques logísticos em nações fornecedoras possuem potencial imediato para paralisar as operações do Brasil, denotando urgência em políticas de nearshoring e incentivo à produção interna de defensivos e tecnologia.
+
+**6.2. A Corrida da Transição Energética e Inovação Tecnológica**
+
+O ranking de alocação financeira estadual para importação de infraestrutura moderna (células fotovoltaicas, aerogeradores, baterias de lítio e semicondutores).
+
+TABELA
+
+GRAFICO
+
+Os resultados comprovam uma severa assimetria geográfica na modernização do parque industrial e matriz energética. Uma parcela esmagadora das inovações de alto valor tecnológico é absorvida quase que exclusivamente pelos estados da região Sudeste e Sul, marginalizando outras regiões do processo de eletrificação e autonomia produtiva. Isso reforça que a adoção tecnológica reflete diretamente o Produto Interno Bruto (PIB) regionalizado, perpetuando o abismo estrutural entre os estados da federação.
+
+**6.3. Qualidade da Balança Comercial e Nível de Manufatura**
+
+A análise qualitativa das trocas comerciais com as 10 maiores economias parceiras, contrastando o saldo absoluto com a proporção de produtos primários e rudimentares exportados (soja, minério, petróleo bruto, carnes in natura).
+
+TABELA
+
+GRAFICOS
+
+A qualidade na balança comercial brasileira se demonstrou deficiente. Embora o Brasil registre volumosos superávits em bilhões em relação à boa parte dos top 10 parceiros comerciais, a análise qualitativa demonstra um cenário comercial desfavorável em termos de valor agregado. A esmagadora maioria do volume financeiro de exportação destina-se a parceiros que utilizam o Brasil como celeiro primário e polo extrativista. Observa-se que, com potências tecnológicas, as commodities chegam a representar a quase totalidade do volume exportado, enquanto o Brasil absorve todo o passivo da importação de manufaturados avançados oriundos dessas mesmas nações.
+
+
+
+
+
