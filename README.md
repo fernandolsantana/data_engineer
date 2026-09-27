@@ -154,7 +154,7 @@ Abaixo, uma tabela contendo os resultados obtidos utilizando a **Validação Aut
 | Completude (Null Ratio)      	| estado_uf, pais, desc_produto    	| 0% de Nulos                                 	| Confirma a eficácia do uso da função coalesce para tratamento de registros órfãos, substituindo lacunas governamentais por descritivos literais. 	|
 | Acurácia Numérica            	| valor_fob_dolar, peso_liquido_kg 	| 0% de Zeros                                 	| Valida a limpeza realizada na Camada Silver, que filtrou anomalias e registros aduaneiros sem impacto financeiro real.                           	|
 | Consistência (Cardinalidade) 	| tipo_operacao                    	| 2 Valores                                   	| A exatidão de apenas dois vetores ('EXP' e 'IMP') comprova a ausência de ruídos ou erros de categorização na ingestão.                           	|
-| Volumetria Global            	| Tabela Inteira (gold_comex)      	| (Preencher com o total de linhas) Registros 	| Demonstra a estabilidade do pipeline na consolidação integral da carga histórica (2024-2025).                                                    	|
+| Volumetria Global            	| Tabela Inteira (gold_comex)      	| 7,97 milhões de registros 	| Demonstra a estabilidade do pipeline na consolidação integral da carga histórica (2024-2025).                                                    	|
 
 
 Tabela 2. resultado extraído do Databricks Lakehouse Monitoring.
