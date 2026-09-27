@@ -43,8 +43,6 @@ Camada Silver (Cleansed): Execução de data profiling, saneamento de anomalias,
 
 Camada Gold (Curated): Modelagem analítica baseada no Star Schema. Execução de LEFT JOINs entre a Tabela Fato e os Dicionários, resultando em uma One Big Table desnormalizada, indexada e otimizada para o consumo das regras de negócio via SQL.
 
-<img width="362" height="325" alt="tabelas-mvp" src="https://github.com/user-attachments/assets/64e4ace4-8b45-4417-a666-65f078747040" />
-
 A modelagem dimensional eliminou a opacidade dos códigos alfanuméricos aduaneiros (NCM), entregando semântica de negócios imediata na Camada Gold, conforme estruturado no dicionário abaixo.
 
 **3.2. Catálogo de Dados**
@@ -119,8 +117,19 @@ A modelagem dimensional eliminou a opacidade dos códigos alfanuméricos aduanei
 
 **4. Pipeline de Dados (Etapa 4.4)**
 
+O processo de ETL foi orquestrado centralmente em um único Notebook no Databricks, utilizando a linguagem PySpark. Para manter o fluxo coeso e simplificar a governança, a ramificação do processamento não foi feita dividindo o código em múltiplos arquivos, mas sim estruturada de forma lógica e sequencial dentro do mesmo script, adotando rigorosamente a Arquitetura Medallion em três fases de processamento direto:
 
+Camada Bronze 
+A etapa inicial é responsável pela ingestão escalável das fontes governamentais. O script inicia consumindo os oito arquivos nativos .csv. A ramificação lógica desta fase consiste na união vertical das bases históricas, agregando os anos de 2024 e 2025, e na criação de uma coluna identificadora primária, denominada TIPO_OPERACAO, para distinguir os fluxos de exportação ('EXP') e importação ('IMP'). Finalizadas essas transformações primárias, os dados brutos foram salvos fisicamente como tabelas no formato Delta Lake, preservando o histórico imutável das transações.
 
+Camada Silver
+Na sequência, o pipeline avança para a fase de higienização, consumindo diretamente a tabela consolidada na etapa Bronze. A ramificação lógica da camada Silver concentra-se na qualidade de dados: o script aplica a correção de _encoding_ e implementa filtros defensivos rígidos (como filter(col("VL_FOB") > 0)). Esse filtro garante o descarte automático de registros aduaneiros corrompidos ou sem impacto financeiro real.A base limpa é persistida sobrepondo a camada intermediária (silver_fato_comex), que passa a atuar como a fonte oficial do projeto. 
+
+Camada Gold
+O processamento é finalizado na camada destinada à inteligência de negócio. O script orquestra a consolidação dos dados realizando a leitura da camada Silver em conjunto com as tabelas de Dimensões textuais (Bronze). A ramificação lógica constrói uma modelagem dimensional (Star Schema) por meio de cruzamentos do tipo LEFT JOIN. Para proteger a integridade estatística da balança comercial, a função coalesce é combinada com lit para tratar as lacunas governamentais de origem ("ND") sem causar distorções numéricas. O resultado desta operação é materializado e salvo na tabela gold_comex_analitica, entregando uma One Big Table fisicamente otimizada para as consultas gerenciais em SQL.
+
+<img width="362" height="325" alt="tabelas-mvp" src="https://github.com/user-attachments/assets/64e4ace4-8b45-4417-a666-65f078747040" />
+Figura 1. Listagem das tabelas criadas (bronze, silver e gold)
 
 
 
