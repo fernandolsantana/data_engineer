@@ -174,7 +174,7 @@ A balança comercial evidencia uma assimetria perigosa. A consolidação dos 5 e
 
 Tabela 3. Volumes de importação do Top 5 de insumos críticos (categorias).
 
-<img width="1335" height="500" alt="visualization (12)" src="https://github.com/user-attachments/assets/3a3cfd0d-2fb9-4644-8341-584db7f17f0a" />
+<img width="1044" height="376" alt="newplot (3)" src="https://github.com/user-attachments/assets/c02384f6-016d-4dfb-afed-a3a2ed902f92" />
 
 Figura 2. Gráfico de barras com volumes de importação do Top 5 de insumos críticos (categorias).
 
