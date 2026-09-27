@@ -51,18 +51,36 @@ A modelagem dimensional eliminou a opacidade dos códigos alfanuméricos aduanei
 
 **3.2. Catálogo de Dados**
 
+### 3.2. Catálogo de Dados, Linhagem e Domínio
+
+Para garantir a governança e a rastreabilidade das transformações ao longo do pipeline Medallion, o catálogo abaixo detalha o esquema estrutural, o domínio numérico/categórico esperado e a linhagem de dados das tabelas curadas (Silver e Gold).
+
 | Tabela | Coluna | Tipo_de_Dado | Descricao | Domínio de Valores (Min/Max/Cat) | Linhagem (Origem / Transformação) |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| gold_comex_analitica | ano | INT | Período anual de registro. | `2024`, `2025` | Origem: Fato (`CO_ANO`). Ingestão Bronze. |
-| gold_comex_analitica | mes | INT | Período mensal de registro. | `1` a `12` | Origem: Fato (`CO_MES`). Ingestão Bronze. |
-| gold_comex_analitica | tipo_operacao | STRING | Classificador do vetor comercial. | `'EXP'`, `'IMP'` | Criada via lógica condicional na camada Bronze durante a unificação dos arquivos. |
-| gold_comex_analitica | cod_ncm | INT | Código Nomenclatura Comum Mercosul. | `1000000` a `99999999` | Origem: Fato (`CO_NCM`). Cast para INT na Silver. |
-| gold_comex_analitica | desc_produto | STRING | Descritor textual do item. | Múltiplas categorias de produtos | Origem: Dimensão NCM. Atribuída via `LEFT JOIN` na Gold. Tratada com `coalesce` para nulos. |
-| gold_comex_analitica | pais | STRING | Nação de origem/destino. | `Estados Unidos`, `China`, etc. | Origem: Dimensão País. Atribuída via `LEFT JOIN` na Gold. |
-| gold_comex_analitica | estado_uf | STRING | UF correspondente ao domicílio. | `SP`, `MG`, `RJ`, etc. | Origem: Dimensão UF. Tratamento de "ND" por "Estado Não Informado" na Gold. |
-| gold_comex_analitica | via_transporte | STRING | Modal logístico utilizado. | `Marítima`, `Aérea`, etc. | Origem: Dimensão Via. Atribuída via `LEFT JOIN` na Gold. |
-| gold_comex_analitica | peso_liquido_kg | DOUBLE | Massa física total (Kg). | `>= 0.0` | Origem: Fato (`KG_LIQUIDO`). Cast para DOUBLE na Silver. |
-| gold_comex_analitica | valor_fob_dolar | DOUBLE | Montante financeiro (US$). | `> 0.0` | Origem: Fato (`VL_FOB`). Filtrada anomalias (zeros) na Silver. |
+| **silver_fato_comex** | CO_ANO | INT | Ano do desembaraço aduaneiro. | `2024`, `2025` | Origem: Arquivos brutos. Tipagem explícita para INT aplicada na ingestão. |
+| **silver_fato_comex** | CO_MES | INT | Mês do desembaraço aduaneiro. | `1` a `12` | Origem: Arquivos brutos. Tipagem explícita para INT aplicada na ingestão. |
+| **silver_fato_comex** | CO_NCM | INT | Código numérico da NCM. | `1000000` a `99999999` | Origem: Arquivos brutos. Conversão via PySpark (`cast("int")`). |
+| **silver_fato_comex** | CO_UNID | INT | Código da unidade de medida. | `10` a `99` (Categorias do MDIC) | Origem: Arquivos brutos. Conversão via PySpark (`cast("int")`). |
+| **silver_fato_comex** | CO_PAIS | INT | Código BACEN do país. | `1` a `999` | Origem: Arquivos brutos. Conversão via PySpark (`cast("int")`). |
+| **silver_fato_comex** | SG_UF_NCM | STRING | Sigla da UF do domicílio fiscal. | `SP`, `MG`, `ND`, etc. | Origem: Arquivos brutos. Leitura mantida como string original. |
+| **silver_fato_comex** | CO_VIA | INT | Código da via de transporte. | `1` a `15` | Origem: Arquivos brutos. Conversão via PySpark (`cast("int")`). |
+| **silver_fato_comex** | CO_URF | INT | Código da Unidade da Receita. | Ex: `817800` (Códigos RFB) | Origem: Arquivos brutos. Conversão via PySpark (`cast("int")`). |
+| **silver_fato_comex** | QT_ESTAT | LONG | Quantidade estatística do item. | `>= 0` | Origem: Arquivos brutos. Conversão via PySpark (`cast("long")`). |
+| **silver_fato_comex** | KG_LIQUIDO | DOUBLE | Peso líquido total (Kg). | `>= 0.0` | Origem: Arquivos brutos. Conversão via PySpark (`cast("double")`). |
+| **silver_fato_comex** | VL_FOB | DOUBLE | Valor FOB (US$). | `> 0.0` | Origem: Arquivos brutos. `cast("double")` + Higienização (`filter(col("VL_FOB") > 0)`). |
+| **silver_fato_comex** | TIPO_OPERACAO | STRING | Classificador do vetor comercial. | `'EXP'`, `'IMP'` | Criada logicamente via PySpark `lit()` no _unionByName_ da camada Bronze. |
+| **silver_fato_comex** | VL_FRETE | INT | Valor do frete internacional (US$). | `>= 0` | Origem: Arquivos brutos. Conversão via PySpark (`cast("int")`). |
+| **silver_fato_comex** | VL_SEGURO | INT | Valor do seguro internacional (US$). | `>= 0` | Origem: Arquivos brutos. Conversão via PySpark (`cast("int")`). |
+| **gold_comex_analitica** | ano | INT | Período anual de registro. | `2024`, `2025` | Herança: `silver_fato_comex.CO_ANO`. Renomeada (`withColumnRenamed`). |
+| **gold_comex_analitica** | mes | INT | Período mensal de registro. | `1` a `12` | Herança: `silver_fato_comex.CO_MES`. Renomeada (`withColumnRenamed`). |
+| **gold_comex_analitica** | tipo_operacao | STRING | Classificador do vetor comercial. | `'EXP'`, `'IMP'` | Herança: `silver_fato_comex.TIPO_OPERACAO`. Letras minúsculas no padrão OBT. |
+| **gold_comex_analitica** | cod_ncm | INT | Código numérico da NCM. | `1000000` a `99999999` | Herança: `silver_fato_comex.CO_NCM`. |
+| **gold_comex_analitica** | desc_produto | STRING | Descritor textual do produto. | Diversas categorias textuais | Cruzamento: `LEFT JOIN` com `bronze_dim_ncm`. Tratamento de nulos com `coalesce("ND")`. |
+| **gold_comex_analitica** | pais | STRING | Nação correspondente à operação. | `Estados Unidos`, `China`, etc. | Cruzamento: `LEFT JOIN` com `bronze_dim_pais`. Tratamento de nulos com `coalesce("ND")`. |
+| **gold_comex_analitica** | estado_uf | STRING | UF correspondente ao domicílio. | `São Paulo`, `Minas Gerais`, etc. | Cruzamento: `LEFT JOIN` com `bronze_dim_uf`. Tratamento de nulos com `coalesce("ND")`. |
+| **gold_comex_analitica** | via_transporte | STRING | Modal logístico utilizado. | `Via Marítima`, `Via Aérea`, etc. | Cruzamento: `LEFT JOIN` com `bronze_dim_via`. Tratamento de nulos com `coalesce("ND")`. |
+| **gold_comex_analitica** | peso_liquido_kg | DOUBLE | Massa física total (Kg). | `>= 0.0` | Herança: `silver_fato_comex.KG_LIQUIDO`. Renomeada (`withColumnRenamed`). |
+| **gold_comex_analitica** | valor_fob_dolar | DOUBLE | Montante financeiro (US$). | `> 0.0` | Herança: `silver_fato_comex.VL_FOB`. Renomeada (`withColumnRenamed`). |
 
 
 
