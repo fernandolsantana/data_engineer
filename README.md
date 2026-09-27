@@ -145,7 +145,7 @@ O perfilamento dos dados revelou instabilidades sistêmicas nos registros govern
 
 **Acurácia**: Avaliação de coerência física e financeira. Identificaram-se registros nulos ou zerados na coluna de montante financeiro, sem amparo lógico aduaneiro. Neste caso, foi realizada a implementação de filtro na Camada Silver (filter(col("VL_FOB") > 0) e conversão matemática para Double), descartando linhas sem valor econômico.
 
-**Outliers**: A análise descritiva identificou transações com valores FOB isolados na casa de centenas de milhões de dólares. Poré,. no contexto de comércio exterior (ex: importação de plataformas de petróleo ou exportação de lote de aeronaves intercontinentais), operações extremas são ocorrências factuais, e não erros sistêmicos. Os outliers foram validados teoricamente e mantidos no escopo para não distorcer o resultado financeiro total do país.
+**Outliers**: A análise descritiva identificou transações com valores FOB isolados na casa de centenas de milhões de dólares. Porém, no contexto de comércio exterior (ex: importação de plataformas de petróleo ou exportação de lote de aeronaves intercontinentais), operações com valores extremos são ocorrências factuais, e não erros sistêmicos. Os outliers foram validados teoricamente e mantidos no escopo para não distorcer o resultado financeiro total do país.
 
 Abaixo, uma tabela contendo os resultados obtidos utilizando a **Validação Automatizada de Qualidade** presente nativamente no Databricks:
 
@@ -164,15 +164,35 @@ Tabela 2. resultado extraído do Databricks Lakehouse Monitoring.
 
 A balança comercial evidencia uma assimetria perigosa. A consolidação dos 5 eixos de vulnerabilidade demonstra o quanto de capital é imobilizado na sustentação estrutural do país.
 
-TABELA
+| categoria_critica               	| bilhoes_us 	| milhoes_ton 	|
+|---------------------------------	|------------	|-------------	|
+| Minérios e Energia              	| 29.65      	| 84.9        	|
+| Fármacos e Equipamentos Médicos 	| 17.46      	| 0.13        	|
+| Insumos Agrícolas               	| 11.88      	| 13.71       	|
+| Química Fina e Polímeros        	| 8.23       	| 3.6         	|
+| Tecnologia                      	| 6.93       	| 0.22        	|
 
-GRAFICOS
+Tabela 3. Volumes de importação do Top 5 de insumos críticos (categorias).
+
+<img width="1335" height="500" alt="visualization (12)" src="https://github.com/user-attachments/assets/3a3cfd0d-2fb9-4644-8341-584db7f17f0a" />
+
+Figura 2. Gráfico de barras com volumes de importação do Top 5 de insumos críticos (categorias).
 
 A matriz geopolítica abaixo revela a extrema concentração de fornecimento:
 
-TABELA
+| pais_origem    	| bilhoes_us 	| milhoes_ton 	| percentual_participacao 	|
+|----------------	|------------	|-------------	|-------------------------	|
+| Estados Unidos 	| 17.83      	| 35.15       	| 24.05                   	|
+| China          	| 10.81      	| 6.99        	| 14.58                   	|
+| Arábia Saudita 	| 3.91       	| 6.8         	| 5.28                    	|
+| Alemanha       	| 3.22       	| 0.41        	| 4.35                    	|
+| Bolívia        	| 2.25       	| 7.5         	| 3.04                    	|
 
-GRAFICOS
+Tabela 4. Volume e concentração de importação de insumos críticos por parceiro comercial.
+
+<img width="856" height="482" alt="newplot" src="https://github.com/user-attachments/assets/a93fdacb-6774-4e4c-8c6c-559703e5f029" />
+
+Figura 3. Representação gráfica da concentração de importação de insumos críticos por parceiro comercial.
 
 Os dados evidenciam que a cadeia de suprimentos brasileira opera sob elevado risco geopolítico. Constata-se uma dependência massiva de poucas nações para garantir insumos básicos do agronegócio e compostos farmacêuticos primários (IFAs), com uma concentração muito alta dos dois principai parceiros comerciais do Brasil. Também foi observada a vulnerabilidade da cadeia de suprimentos: choques logísticos em nações fornecedoras possuem potencial imediato para paralisar as operações do Brasil, denotando urgência em políticas de nearshoring e incentivo à produção interna de defensivos e tecnologia.
 
@@ -180,9 +200,19 @@ Os dados evidenciam que a cadeia de suprimentos brasileira opera sob elevado ris
 
 O ranking de alocação financeira estadual para importação de infraestrutura moderna (células fotovoltaicas, aerogeradores, baterias de lítio e semicondutores).
 
-TABELA
+| estado_uf      	| bilhoes_us 	| percentual_participacao 	|
+|----------------	|------------	|-------------------------	|
+| Espírito Santo 	| 6.79       	| 34.52                   	|
+| Amazonas       	| 3.21       	| 16.34                   	|
+| São Paulo      	| 2.86       	| 14.54                   	|
+| Santa Catarina 	| 2.42       	| 12.31                   	|
+| Minas Gerais   	| 0.8        	| 4.07                    	|
 
-GRAFICO
+Tabela 5. Volume e participação na importação de itens de transição energética e inovação tecnológica.
+
+<img width="856" height="482" alt="newplot (1)" src="https://github.com/user-attachments/assets/f7539b0b-4258-45d5-b992-1cf19715a837" />
+
+Figura 4. Representação gráfica do volume e participação na importação de itens de transição energética e inovação tecnológica.
 
 Os resultados comprovam uma severa assimetria geográfica na modernização do parque industrial e matriz energética. Uma parcela esmagadora das inovações de alto valor tecnológico é absorvida quase que exclusivamente pelos estados da região Sudeste e Sul, marginalizando outras regiões do processo de eletrificação e autonomia produtiva. Isso reforça que a adoção tecnológica reflete diretamente o Produto Interno Bruto (PIB) regionalizado, perpetuando o abismo estrutural entre os estados da federação.
 
@@ -190,9 +220,24 @@ Os resultados comprovam uma severa assimetria geográfica na modernização do p
 
 A análise qualitativa das trocas comerciais com as 10 maiores economias parceiras, contrastando o saldo absoluto com a proporção de produtos primários e rudimentares exportados (soja, minério, petróleo bruto, carnes in natura).
 
-TABELA
+| pais                    	| montante_bilhoes_us 	| saldo_comercial_bilhoes_us 	| percentual_commodities_exportadas 	|
+|-------------------------	|---------------------	|----------------------------	|------------------------------------	|
+| China                   	| 328.86              	| 59.76                      	| 80.66                              	|
+| Estados Unidos          	| 163.85              	| -7.74                      	| 21.02                              	|
+| Argentina               	| 58.39               	| 5.37                       	| 5.42                               	|
+| Alemanha                	| 40.56               	| -15.82                     	| 30.69                              	|
+| Países Baixos (Holanda) 	| 28.12               	| 18.77                      	| 54                                 	|
+| México                  	| 27.51               	| 3.55                       	| 13.08                              	|
+| Índia                   	| 27.33               	| -3.05                      	| 74.85                              	|
+| Espanha                 	| 26.55               	| 10.96                      	| 78.55                              	|
+| Chile                   	| 23.41               	| 4.25                       	| 32.15                              	|
+| Rússia                  	| 23.35               	| -17.4                      	| 25.06                              	|
 
-GRAFICOS
+Tabela 6. Qualidade de balança comercial do Top 10 principais parceiros comerciais do Brasil.
+
+<img width="856" height="482" alt="newplot (2)" src="https://github.com/user-attachments/assets/20ec52f7-6713-4e09-b8e6-775af7bfd9d5" />
+
+Figura 5. Representação gráfica da qualidade de balança comercial do Top 10 principais parceiros comerciais do Brasil.
 
 A qualidade na balança comercial brasileira se demonstrou deficiente. Embora o Brasil registre volumosos superávits em bilhões em relação à boa parte dos top 10 parceiros comerciais, a análise qualitativa demonstra um cenário comercial desfavorável em termos de valor agregado. A esmagadora maioria do volume financeiro de exportação destina-se a parceiros que utilizam o Brasil como celeiro primário e polo extrativista. Observa-se que, com potências tecnológicas, as commodities chegam a representar a quase totalidade do volume exportado, enquanto o Brasil absorve todo o passivo da importação de manufaturados avançados oriundos dessas mesmas nações.
 
