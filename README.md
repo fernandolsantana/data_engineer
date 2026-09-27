@@ -1,10 +1,13 @@
 # data_engineer
 mvp_data_engineer
 
+**Nome**: Fernando Lopes Santana
+**Matrícula**: 40530010057_20260_01
+**Disciplina/Sprint**: Engenharia de Dados
 
-Análise Estratégica da Balança Comercial Brasileira
+**Análise Estratégica da Balança Comercial Brasileira**
 
-Objetivo: Desenvolver um pipeline de Engenharia de Dados escalável no Databricks que ingira microdados aduaneiros brutos e instáveis, aplique governança e qualidade, e consolide um modelo dimensional capaz de fornecer respostas estratégicas precisas para a alta gestão macroeconômica.
+**Objetivo**: Desenvolver um pipeline de Engenharia de Dados escalável no Databricks que ingira microdados aduaneiros brutos e instáveis, aplique governança e qualidade, e consolide um modelo dimensional capaz de fornecer respostas estratégicas precisas para a alta gestão macroeconômica.
 
 **1. Contexto de negócio e Perguntas (Etapa 2 e 4.1)**
 
@@ -213,7 +216,7 @@ A qualidade na balança comercial brasileira se demonstrou deficiente. Embora o 
 
 **7. Autoavaliação**
 
-O projeto realizado conseguiu entregar as respostas estipuladas. O processamento escalável via Databricks demonstrou boa performance, possibilitando a consolidação da Arquitetura Medallion, blindando o ambiente de exploração contra anomalias na estrutura de dados governamentais.  O principal percalço sistêmico relacionou-se à baixa maturidade e instabilidade da fonte primária (Comex Stat). Os defeitos de encoding textuais e o altíssimo volume de lacunas ("ND") na matriz relacional (UF e Países) exigiram forte atuação saneante na camada Silver. Além disso, outro grande desafio foi adequar lógicas de negócio puras na camada técnica, forçando chaves primárias textuais para garantir a resiliência dos registros.
+A realização deste projeto foi enriquecedora, com muitos desafios e obstáculos vencidos. No que se refere ao projeto em si, acredito que o consegui alcançar os objetivos e entregar as respostas estipuladas. O processamento escalável via Databricks demonstrou boa performance, possibilitando a consolidação da Arquitetura Medallion, blindando o ambiente de exploração contra anomalias na estrutura de dados governamentais.  O principal percalço sistêmico relacionou-se à baixa maturidade e instabilidade da fonte primária (Comex Stat). Os defeitos de encoding textuais e o altíssimo volume de lacunas ("ND") na matriz relacional (UF e Países) exigiram forte atuação saneante na camada Silver. Além disso, outro grande desafio foi adequar lógicas de negócio puras na camada técnica, forçando chaves primárias textuais para garantir a resiliência dos registros.
 
 Para futuros trabalhos, olhando o escopo atual, temos três incrementos que podem enriquecer a solução das perguntas realizadas:
 
