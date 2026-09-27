@@ -29,7 +29,11 @@ Licenciamento: Domínio público, disponibilizado em formato de Dados Abertos pe
 
 **2. Carga dos Dados (Etapa 4.2)**
 
-A extração ocorreu mediante aquisição direta dos arquivos .CSV no repositório do Comex Stat. Para a etapa de carga, foi empregado o Databricks.
+A extração ocorreu mediante aquisição direta dos arquivos .CSV no repositório do Comex Stat. Para a etapa de carga, foi empregado o Databricks. A extração primária ocorreu mediante aquisição direta de arquivos (.CSV) no portal governamental Comex Stat. Para a etapa de carga e processamento, a arquitetura foi desenhada na nuvem utilizando o Databricks.
+
+Os arquivos brutos foram carregados nativamente para o armazenamento distribuído da plataforma, sendo alocados em um Volume seguro do Unity Catalog (`/Volumes/mvp/mvp_data_engineering/mvp_comex/`). Esta abordagem evitou a dependência de ferramentas externas de ingestão (Data Ingestion tools) para este MVP, garantindo que o processamento PySpark acessasse os dados localmente com alta performance.
+
+<img width="1128" height="544" alt="image" src="https://github.com/user-attachments/assets/d59dea2a-1beb-4d43-b26e-42987098b6dc" />
 
 **3. Modelagem e Catálogo de Dados (Etapa 4.3)**
 
@@ -41,7 +45,7 @@ Camada Bronze (Raw): Ingestão escalável dos arquivos CSV a partir do Volume, u
 
 Camada Silver (Cleansed): Execução de data profiling, saneamento de anomalias, type casting rigoroso de variáveis métricas e higienização de nulos.
 
-Camada Gold (Curated): Modelagem analítica baseada no Star Schema. Execução de LEFT JOINs entre a Tabela Fato e os Dicionários, resultando em uma One Big Table desnormalizada, indexada e otimizada para o consumo das regras de negócio via SQL.
+Camada Gold (Curated): As camadas Bronze e Silver preservam a separação relacional entre fato e dimensão (estrutura próxima ao Star Schema). Contudo, para otimizar o consumo analítico direto e reduzir a complexidade das consultas de negócio, a camada Gold orquestra a consolidação dessas tabelas. Através de operações de `LEFT JOIN`, os identificadores numéricos são cruzados com seus respectivos dicionários, resultando em uma One Big Table (OBT) totalmente desnormalizada.
 
 A modelagem dimensional eliminou a opacidade dos códigos alfanuméricos aduaneiros (NCM), entregando semântica de negócios imediata na Camada Gold, conforme estruturado no dicionário abaixo.
 
@@ -132,6 +136,8 @@ O processamento é finalizado na camada destinada à inteligência de negócio. 
 <img width="362" height="325" alt="tabelas-mvp" src="https://github.com/user-attachments/assets/64e4ace4-8b45-4417-a666-65f078747040" />
 
 Figura 1. Listagem das tabelas criadas (bronze, silver e gold)
+
+O fluxo Medallion completo (Bronze > Silver > Gold) está versionado e executável neste repositório. 
 
 **5. Qualidade de Dados (Etapa 4.5)**
 
