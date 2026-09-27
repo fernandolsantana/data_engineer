@@ -18,7 +18,7 @@ A arquitetura de dados foi desenhada para responder a três questionamentos estr
 
 **Qualidade da Balança Comercial**: Analisando os 10 maiores parceiros comerciais do país, qual é o saldo financeiro real e o grau de dependência da exportação de produtos primários (commodities) em detrimento de bens de maior valor agregado?
 
-**Estrutura da Origem dos Dados**
+**1.1. Estrutura da Origem dos Dados**
 Os microdados foram extraídos da plataforma governamental Comex Stat, estruturados em:
 
 Tabelas Fato (Transacionais): EXP_2024.csv, EXP_2025.csv, IMP_2024.csv, IMP_2025.csv. Registram a granularidade máxima de cada operação aduaneira (ano, mês, NCM, país, UF, via logística, peso e valor FOB em dólares).
@@ -162,7 +162,7 @@ Tabela 2. resultado extraído do Databricks Lakehouse Monitoring.
 **6. Análise de Dados (Etapa 4.5)**
 **6.1. Vulnerabilidade da Cadeia de Suprimentos**
 
-A balança comercial evidencia uma assimetria perigosa. A consolidação dos 5 eixos de vulnerabilidade demonstra o quanto de capital é imobilizado na sustentação estrutural do país.
+Qual é o nível de concentração e dependência geopolítica do Brasil no fornecimento de insumos críticos (Insumos Agrícolas, Fármacos/Equipamentos Médicos, Minérios/Energia, Química Fina/Polímeros e Tecnologia)? A balança comercial evidencia uma assimetria perigosa. A consolidação dos 5 eixos de vulnerabilidade demonstra o quanto de capital é imobilizado na sustentação estrutural do país.
 
 | categoria_critica               	| bilhoes_us 	| milhoes_ton 	|
 |---------------------------------	|------------	|-------------	|
@@ -198,7 +198,7 @@ Os dados evidenciam que a cadeia de suprimentos brasileira opera sob elevado ris
 
 **6.2. A Corrida da Transição Energética e Inovação Tecnológica**
 
-O ranking de alocação financeira estadual para importação de infraestrutura moderna (células fotovoltaicas, aerogeradores, baterias de lítio e semicondutores).
+Quais unidades federativas centralizam os aportes (via importação) em infraestrutura de eletrificação, geração renovável e componentes inteligentes? O ranking de alocação financeira estadual para importação de infraestrutura moderna (células fotovoltaicas, aero geradores, baterias de lítio e semicondutores).
 
 | estado_uf      	| bilhoes_us 	| percentual_participacao 	|
 |----------------	|------------	|-------------------------	|
@@ -218,7 +218,7 @@ Os resultados comprovam uma severa assimetria geográfica na modernização do p
 
 **6.3. Qualidade da Balança Comercial e Nível de Manufatura**
 
-A análise qualitativa das trocas comerciais com as 10 maiores economias parceiras, contrastando o saldo absoluto com a proporção de produtos primários e rudimentares exportados (soja, minério, petróleo bruto, carnes in natura).
+Analisando os 10 maiores parceiros comerciais do país, qual é o saldo financeiro real e o grau de dependência da exportação de produtos primários (commodities) em detrimento de bens de maior valor agregado? A análise qualitativa das trocas comerciais com as 10 maiores economias parceiras, contrastando o saldo absoluto com a proporção de produtos primários e rudimentares exportados (soja, minério, petróleo bruto, carnes in natura).
 
 | pais                    	| montante_bilhoes_us 	| saldo_comercial_bilhoes_us 	| percentual_commodities_exportadas 	|
 |-------------------------	|---------------------	|----------------------------	|------------------------------------	|
@@ -241,7 +241,15 @@ Figura 5. Representação gráfica da qualidade de balança comercial do Top 10 
 
 A qualidade na balança comercial brasileira se demonstrou deficiente. Embora o Brasil registre volumosos superávits em bilhões em relação à boa parte dos top 10 parceiros comerciais, a análise qualitativa demonstra um cenário comercial desfavorável em termos de valor agregado. A esmagadora maioria do volume financeiro de exportação destina-se a parceiros que utilizam o Brasil como celeiro primário e polo extrativista. Observa-se que, com potências tecnológicas, as commodities chegam a representar a quase totalidade do volume exportado, enquanto o Brasil absorve todo o passivo da importação de manufaturados avançados oriundos dessas mesmas nações.
 
+**7. Autoavaliação**
 
+O projeto realizado conseguiu entregar as respostas estipuladas. O processamento escalável via Databricks demonstrou boa performance, possibilitando a consolidação da Arquitetura Medallion, blindando o ambiente de exploração contra anomalias na estrutura de dados governamentais.  O principal percalço sistêmico relacionou-se à baixa maturidade e instabilidade da fonte primária (Comex Stat). Os defeitos de encoding textuais e o altíssimo volume de lacunas ("ND") na matriz relacional (UF e Países) exigiram forte atuação saneante na camada Silver. Além disso, outro grande desafio foi adequar lógicas de negócio puras na camada técnica, forçando chaves primárias textuais para garantir a resiliência dos registros.
+
+Para futuros trabalhos, olhando o escopo atual, temos três incrementos que podem enriquecer a solução das perguntas realizadas:
+
+- Substituir a coleta e ingestão de dados manualmente pela implementação de pipelines via Databricks Workflows, consumindo a API REST oficial do governo de forma incremental.
+- Incorporar bibliotecas especializadas como Great Expectations diretamente no código PySpark para gerar relatórios de auditoria e validação de regras de domínio de maneira automatizada na Camada Silver.
+- Ingerir as tabelas de taxas de câmbio (PTAX) mantidas pelo Banco Central do Brasil para cruzar com a camada Gold, permitindo a apuração de impactos analíticos ajustados à flutuação cambial do Real (BRL) durante a competência analisada.
 
 
 
