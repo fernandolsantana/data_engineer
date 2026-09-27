@@ -136,6 +136,7 @@ Abaixo, uma tabela contendo os resultados obtidos utilizando a **Validação Aut
 Tabela 2. resultado extraído do Databricks Lakehouse Monitoring.
 
 **6. Análise de Dados (Etapa 4.5)**
+
 **6.1. Vulnerabilidade da Cadeia de Suprimentos**
 
 Qual é o nível de concentração e dependência geopolítica do Brasil no fornecimento de insumos críticos (Insumos Agrícolas, Fármacos/Equipamentos Médicos, Minérios/Energia, Química Fina/Polímeros e Tecnologia)? A balança comercial evidencia uma assimetria perigosa. A consolidação dos 5 eixos de vulnerabilidade demonstra o quanto de capital é imobilizado na sustentação estrutural do país.
