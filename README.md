@@ -51,6 +51,21 @@ A modelagem dimensional eliminou a opacidade dos códigos alfanuméricos aduanei
 
 **3.2. Catálogo de Dados**
 
+| Tabela | Coluna | Tipo_de_Dado | Descricao | Domínio de Valores (Min/Max/Cat) | Linhagem (Origem / Transformação) |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| gold_comex_analitica | ano | INT | Período anual de registro. | `2024`, `2025` | Origem: Fato (`CO_ANO`). Ingestão Bronze. |
+| gold_comex_analitica | mes | INT | Período mensal de registro. | `1` a `12` | Origem: Fato (`CO_MES`). Ingestão Bronze. |
+| gold_comex_analitica | tipo_operacao | STRING | Classificador do vetor comercial. | `'EXP'`, `'IMP'` | Criada via lógica condicional na camada Bronze durante a unificação dos arquivos. |
+| gold_comex_analitica | cod_ncm | INT | Código Nomenclatura Comum Mercosul. | `1000000` a `99999999` | Origem: Fato (`CO_NCM`). Cast para INT na Silver. |
+| gold_comex_analitica | desc_produto | STRING | Descritor textual do item. | Múltiplas categorias de produtos | Origem: Dimensão NCM. Atribuída via `LEFT JOIN` na Gold. Tratada com `coalesce` para nulos. |
+| gold_comex_analitica | pais | STRING | Nação de origem/destino. | `Estados Unidos`, `China`, etc. | Origem: Dimensão País. Atribuída via `LEFT JOIN` na Gold. |
+| gold_comex_analitica | estado_uf | STRING | UF correspondente ao domicílio. | `SP`, `MG`, `RJ`, etc. | Origem: Dimensão UF. Tratamento de "ND" por "Estado Não Informado" na Gold. |
+| gold_comex_analitica | via_transporte | STRING | Modal logístico utilizado. | `Marítima`, `Aérea`, etc. | Origem: Dimensão Via. Atribuída via `LEFT JOIN` na Gold. |
+| gold_comex_analitica | peso_liquido_kg | DOUBLE | Massa física total (Kg). | `>= 0.0` | Origem: Fato (`KG_LIQUIDO`). Cast para DOUBLE na Silver. |
+| gold_comex_analitica | valor_fob_dolar | DOUBLE | Montante financeiro (US$). | `> 0.0` | Origem: Fato (`VL_FOB`). Filtrada anomalias (zeros) na Silver. |
+
+
+
 | Tabela               	| Coluna          	| Tipo_de_Dado 	| Descricao                                                                         	|
 |----------------------	|-----------------	|--------------	|-----------------------------------------------------------------------------------	|
 | bronze_dim_ncm       	| CO_NCM          	| STRING       	| Chave primária: Código numérico da Nomenclatura Comum do Mercosul (8 dígitos).    	|
@@ -137,7 +152,7 @@ O processamento é finalizado na camada destinada à inteligência de negócio. 
 
 Figura 1. Listagem das tabelas criadas (bronze, silver e gold)
 
-O fluxo Medallion completo (Bronze > Silver > Gold) está versionado e executável neste repositório. 
+O fluxo Medallion completo (Bronze > Silver > Gold) está versionado neste repositório: pipeline_etl_comex.ipynb.
 
 **5. Qualidade de Dados (Etapa 4.5)**
 
